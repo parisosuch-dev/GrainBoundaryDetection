@@ -76,8 +76,8 @@ def extract_specimen(file):
     height = 2028
 
     #phase = np.array((width, height))
-    euler = np.zeros((width, height, 3))
-    band = np.zeros((width, height))
+    euler = np.zeros((height, width, 3))
+    band = np.zeros((height, width))
 
     count = 0
 
@@ -87,17 +87,20 @@ def extract_specimen(file):
         
         rgb = line[4].split()
 
+        y = int(line[1])//10
+        x = int(line[2])//10
+
         if (rgb[0] == "0" and rgb[1] == "255" and rgb[2] == "0"):
-            euler[int(line[1])//10][int(line[2])//10][0] = 255
-            euler[int(line[1])//10][int(line[2])//10][2] = 255
-            euler[int(line[1])//10][int(line[2])//10][1] = 255
+            euler[x][y][0] = 255
+            euler[x][y][2] = 255
+            euler[x][y][1] = 255
             count += 1
         else:
-            euler[int(line[1])//10][int(line[2])//10][0] = int(rgb[0])
-            euler[int(line[1])//10][int(line[2])//10][1] = int(rgb[1])
-            euler[int(line[1])//10][int(line[2])//10][2] = int(rgb[2])            
+            euler[x][y][0] = int(rgb[0])
+            euler[x][y][1] = int(rgb[1])
+            euler[x][y][2] = int(rgb[2])            
 
-        band[int(line[1])//10][int(line[2])//10] = line[5]
+        band[x][y] = line[5]
     
     image = im.fromarray(euler, mode="RGB")
     #image = image.convert('RGB')
