@@ -19,7 +19,8 @@ si_data = pd.read_csv(r'/home/jdepriest/rock_final/data/Si Kα1.csv')
 
 specimen = open(r'/home/jdepriest/rock_final/data/11CSR01-p Specimen 1 Area 2 Montaged Data 1 Montaged Map Data-Ph + AE + BC + EDS (Al+Ca+Na+Fe+Si+K).csv')
 
-extract_specimen(specimen)
+#extract_specimen(specimen)
+get_phase_color(specimen)
 
 #specimen = np.array(specimen)
 
