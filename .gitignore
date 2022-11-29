@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 
 11CSR01-p Specimen 1 Area 2 Montaged Data 1 Montaged Map Data-Ph + AE + BC + EDS (Al+Ca+Na+Fe+Si+K).csv
+.vscode/*
