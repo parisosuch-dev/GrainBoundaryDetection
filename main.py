@@ -2,7 +2,7 @@ import pandas as pd
 from PIL import Image as im
 import matplotlib.pyplot as plt
 import numpy as np
-from helper import *
+from image_generation import *
 
 
 al_data = pd.read_csv(r'/home/jdepriest/rock_final/data/Al Kα1.csv')
@@ -19,7 +19,10 @@ si_data = pd.read_csv(r'/home/jdepriest/rock_final/data/Si Kα1.csv')
 
 specimen = open(r'/home/jdepriest/rock_final/data/11CSR01-p Specimen 1 Area 2 Montaged Data 1 Montaged Map Data-Ph + AE + BC + EDS (Al+Ca+Na+Fe+Si+K).csv')
 
-extract_specimen(specimen)
+#extract_specimen(specimen)
+#get_phase_color(specimen)
+#get_element_images(specimen)
+#subset_of_euler(specimen)
 
 #specimen = np.array(specimen)
 
@@ -35,21 +38,43 @@ extract_specimen(specimen)
 #generateImages([[phase_color]], ["phase_color"])
 
 
-#ipf_image = np.zeros((ipf_x_color.shape[0], ipf_x_color.shape[1], 3))
+ipf_image = np.zeros((ipf_x_color.shape[0], ipf_x_color.shape[1]-1, 3))
 
 #print(ipf_image.shape)
 
-#ipf_image[:,:,0] = ipf_x_color
-#ipf_image[:,:,1] = ipf_y_color
-#ipf_image[:,:,2] = ipf_z_color
+ipf_x_color = np.array(ipf_x_color)
+ipf_y_color = np.array(ipf_y_color)
+ipf_z_color = np.array(ipf_z_color)
 
-#print(ipf_x_color.shape)
+print(ipf_x_color.min(), ipf_x_color.max())
 
-#ipf_x_color = np.array(ipf_x_color)
+ipf_x_color = np.absolute(ipf_x_color)
+ipf_y_color = np.absolute(ipf_y_color)
+ipf_z_color = np.absolute(ipf_z_color)
+
+ipf_x_color = normalize(ipf_x_color)
+ipf_y_color = normalize(ipf_y_color)
+ipf_z_color = normalize(ipf_z_color)
+
+ipf_image[:,:,0] = ipf_x_color
+ipf_image[:,:,1] = ipf_y_color
+ipf_image[:,:,2] = ipf_z_color
+
+#ipf_image = np.array(ipf_image)
+#print(ipf_image.shape)
+
+ipf_image = np.absolute(ipf_image)
+#ipf_image = normalize(ipf_image)
+
+image = im.fromarray(ipf_image, "RGB")
+#image = image.convert('RGB')
+image.save("images/ipf_image_norm.png")
+
+
 
 #ipf_x_color = ipf_x_color[:,:-1]
 
-#print(ipf_x_color.min(), ipf_x_color.max(), sep="\n")
+#print(ipf_image.min(), ipf_image.max(), sep="\n")
 #print(ipf_x_color)
 
 #all_data = [si_data, na_data, al_data, ca_data, fe_data, ipf_x_color, ipf_y_color, ipf_z_color, k_data]
