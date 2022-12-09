@@ -48,24 +48,40 @@ def get_band_con(file):
 
 
 def get_phase_color(file):
-    for i in range(11):
-        file.readline()
-    width = file.readline()
-    height = file.readline()
+    file.readline()
     file.readline()
 
-    width = width.split(",")
-    width = int(width[1])
-    height = height.split(",")
-    height = int(height[1])
+    width = 3523   # hard coded for data file
+    height = 2028
 
-    phase_color = np.zeros((width, height))
+    euler_phase = np.zeros((height, width, 3))      # This one to generate normal image. Next to generate white image.
+    #euler_phase = np.full((height, width, 3), 255)
+
+    count = 0
 
     for line in file:
         line = line.split(",")
-        phase_color[int(line[0])][int(line[1])] = int(line[2])
+        
+        rgb = line[4].split()
 
-    return phase_color
+        y = int(line[1])//10
+        x = int(line[2])//10
+
+        rgb = np.array(rgb, "int")
+
+        if (int(line[3]) == 1):
+            euler_phase[x,y,:] = rgb
+            count += 1
+
+
+    image = im.fromarray(euler_phase, mode="RGB")
+    #image = image.convert("RGB")
+    image.save("images/euler_phase_white.png")
+
+    print(count)
+
+
+    
 
 
 def extract_specimen(file):
@@ -75,26 +91,32 @@ def extract_specimen(file):
     width = 3523   # hard coded for data file
     height = 2028
 
-    #phase = np.array((width, height))
+    phase = np.zeros((height, width))
     euler = np.zeros((height, width, 3))
     band = np.zeros((height, width))
+    al_image = np.zeros((height, width))
 
     count = 0
 
     for line in file:
         line = line.split(",")
-        #phase[int(line[1])][int(line[2])] = line[3]
         
         rgb = line[4].split()
 
         y = int(line[1])//10
         x = int(line[2])//10
 
+        element = line[6].split()
+
+        phase[x][y] = int(line[3])
+
+        al_image[x][y] = float(element[0])
+
         if (rgb[0] == "0" and rgb[1] == "255" and rgb[2] == "0"):
             euler[x][y][0] = 255
             euler[x][y][2] = 255
             euler[x][y][1] = 255
-            count += 1
+            #count += 1
         else:
             euler[x][y][0] = int(rgb[0])
             euler[x][y][1] = int(rgb[1])
@@ -102,11 +124,15 @@ def extract_specimen(file):
 
         band[x][y] = line[5]
     
-    image = im.fromarray(euler, mode="RGB")
-    #image = image.convert('RGB')
-    image.save("images/edit_euler_image.png")
+    generateImages([al_image], "phase_al")
 
-    print(count)
+    #generateImages([phase], ["phase_color"])
+
+    #image = im.fromarray(euler, mode="RGB")
+    #image = image.convert('RGB')
+    #image.save("images/edit_euler_image.png")
+
+    #print(count)
 
     #image = im.fromarray(band)
     #image = image.convert('RGB')
