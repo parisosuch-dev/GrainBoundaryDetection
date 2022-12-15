@@ -24,7 +24,6 @@ def normalize_float(array):
 
 def normalize(array):
     array = array.astype('float64')
-    array = array[:,:-1]
     array = array / array.max()
     array = array * 255
     return array
@@ -40,11 +39,11 @@ def get_band_con(file):
     height = height.split(",")
     height = int(height[1])
 
-    band_con = np.zeros((width, height))
+    band_con = np.zeros((height, width))
 
     for line in file:
         line = line.split(",")
-        band_con[int(line[0])][int(line[1])] = line[2]
+        band_con[int(line[1])][int(line[0])] = line[2]
 
     return band_con
 
@@ -183,6 +182,9 @@ def extract_specimen(file):
     euler = np.zeros((height, width, 3))
     band = np.zeros((height, width))
     al_image = np.zeros((height, width))
+    ipf_x = np.zeros((height, width))
+    ipf_y = np.zeros((height, width))
+    ipf_z = np.zeros((height, width))
 
     count = 0
 
@@ -216,7 +218,7 @@ def extract_specimen(file):
 
 
 
-def extract_specimen_all(file):
+def extract_specimen_all(file, verbose=0):
     file.readline()
     file.readline()
 
@@ -224,49 +226,73 @@ def extract_specimen_all(file):
     height = 2028
 
     phase = np.zeros((height, width))
-    euler = np.zeros((height, width, 3))
     band = np.zeros((height, width))
-    al_image = np.zeros((height, width))
+    ipf_x = np.zeros((height, width))
+    ipf_y = np.zeros((height, width))
+    ipf_z = np.zeros((height, width))
+    
+    
 
     for line in file:
         line = line.split(",")
         
-        rgb = line[4].split()
+        values = line[4].split()
 
         y = int(line[1])//10
         x = int(line[2])//10
 
-        element = line[6].split()
-
         phase[x][y] = int(line[3])
-
-        al_image[x][y] = float(element[0])
-
-        if (rgb[0] == "0" and rgb[1] == "255" and rgb[2] == "0"):
-            euler[x][y][0] = 255
-            euler[x][y][2] = 255
-            euler[x][y][1] = 255
-            #count += 1
-        else:
-            euler[x][y][0] = int(rgb[0])
-            euler[x][y][1] = int(rgb[1])
-            euler[x][y][2] = int(rgb[2])            
+          
+        ipf_x[x][y] = values[0]
+        ipf_y[x][y] = values[1]
+        ipf_z[x][y] = values[2]
 
         band[x][y] = line[5]
 
-    return [phase, band]
+    ipf_x = normalize(ipf_x)
+    ipf_y = normalize(ipf_y)
+    ipf_z = normalize(ipf_z)
 
-    #generateImages([phase], ["phase_color"])
+    ipf_y = ipf_y - 256
+    ipf_y = np.absolute(ipf_y)
 
-    #image = im.fromarray(euler, mode="RGB")
-    #image = image.convert('RGB')
-    #image.save("images/edit_euler_image.png")
+    ipf_min = all_ipf_min(ipf_x, ipf_y, ipf_z)
+    ipf_max = all_ipf_max(ipf_x, ipf_y, ipf_z)
 
-    #print(count)
+    if(verbose):
 
-    #image = im.fromarray(band)
-    #image = image.convert('RGB')
-    #image.save("images/s_band_image.png")
+        image = im.fromarray(phase)
+        image = image.convert('RGB')
+        image.save("images/original/phase_image.png")
+
+        image = im.fromarray(band)
+        image = image.convert('RGB')
+        image.save("images/original/band_image.png")
+
+        image = im.fromarray(ipf_x)
+        image = image.convert('RGB')
+        image.save("images/original/ipf_x_image.png")
+
+        image = im.fromarray(ipf_y)
+        image = image.convert('RGB')
+        image.save("images/original/ipf_y_image.png")
+
+        image = im.fromarray(ipf_z)
+        image = image.convert('RGB')
+        image.save("images/original/ipf_z_image.png")
+
+        image = im.fromarray(ipf_min)
+        image = image.convert('RGB')
+        image.save("images/original/ipf_min_image.png")
+
+        image = im.fromarray(ipf_max)
+        image = image.convert('RGB')
+        image.save("images/original/ipf_max_image.png")
+
+    
+    return (phase, band, ipf_x, ipf_y, ipf_z, ipf_min, ipf_max)
+
+    
 
 def get_filter_data(file):
     file.readline()
@@ -292,3 +318,78 @@ def get_filter_data(file):
 
 
     return (phase, band)
+
+
+def all_ipf_nonz(x,y,z):
+    ipf = np.zeros((x.shape[0], x.shape[1]))
+
+    ipf[:,:] = x[:,:]
+
+    for i, val in enumerate(y):
+        for j, v in enumerate(val):
+            if(ipf[i,j] == 0):
+                ipf[i,j] = v
+
+    for i, val in enumerate(z):
+        for j, v in enumerate(val):
+            if(ipf[i,j] == 0):
+                ipf[i,j] = v
+
+    
+def all_ipf_max(x,y,z):
+    ipf = np.zeros((x.shape[0], x.shape[1]))
+
+
+    for i in range(x.shape[0]):
+        for j in range(x.shape[1]):
+            ipf[i,j] = max(x[i,j], y[i,j], z[i,j])
+
+    return ipf
+
+
+def all_ipf_min(x,y,z):
+    ipf = np.zeros((x.shape[0], x.shape[1]))
+
+
+    for i in range(x.shape[0]):
+        for j in range(x.shape[1]):
+            ipf[i,j] = min(x[i,j], y[i,j], z[i,j])
+
+    return ipf
+
+
+def all_ipf_avg(x,y,z):
+    ipf = np.zeros((x.shape[0], x.shape[1]))
+
+    for i in range(x.shape[0]):
+        for j in range(x.shape[1]):
+            ipf[i,j] = (x[i,j] + y[i,j] + z[i,j]) / 3
+
+
+def ipf_specimen(file):
+    file.readline()
+    file.readline()
+
+    width = 3523   # hard coded for data file
+    height = 2028
+
+    ipf_x = np.zeros((height, width))
+    ipf_y = np.zeros((height, width))
+    ipf_z = np.zeros((height, width))
+
+    for line in file:
+        line = line.split(",")
+        
+        values = line[4].split()
+
+        y = int(line[1])//10
+        x = int(line[2])//10
+
+        ipf_x[x][y] = values[0]
+        ipf_y[x][y] = values[1]
+        ipf_z[x][y] = values[2]
+
+    ipf = all_ipf_min(ipf_x,ipf_y,ipf_z)
+
+
+    return ipf
