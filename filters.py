@@ -42,6 +42,3 @@ def contour_image(arr, save_path=None, overlay_img=False):
     else:
         plt.savefig(save_path, dpi=300)
 
-arr = skimage.io.imread("paris_images/tv_filtered/ipf_min_cham_10.png", as_gray=True)
-contour_image(arr, "paris_images/results/plot_ipf_min_cham_10.png", overlay_img=True)
-
