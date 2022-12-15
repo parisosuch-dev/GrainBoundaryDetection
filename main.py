@@ -1,88 +1,25 @@
-import pandas as pd
-from PIL import Image as im
-import matplotlib.pyplot as plt
-import numpy as np
-from image_generation import *
+from image_generation import extract_specimen_all
+from tv_filter import generate_tv
 
 
-al_data = pd.read_csv(r'/home/jdepriest/rock_final/data/Al Kα1.csv')
-#band_contrast = pd.read_csv(r'/home/jdepriest/rock_final/data/Band Contrast 223.csv', skiprows=2)
-ca_data = pd.read_csv(r'/home/jdepriest/rock_final/data/Ca Kα1.csv')
-fe_data = pd.read_csv(r'/home/jdepriest/rock_final/data/Fe Kα1.csv')
-ipf_x_color = pd.read_csv(r'/home/jdepriest/rock_final/data/IPF X Color 223.csv')
-ipf_y_color = pd.read_csv(r'/home/jdepriest/rock_final/data/IPF Y Color 223.csv')
-ipf_z_color = pd.read_csv(r'/home/jdepriest/rock_final/data/IPF Z Color 223.csv')
-k_data = pd.read_csv(r'/home/jdepriest/rock_final/data/K Kα1.csv')
-na_data = pd.read_csv(r'/home/jdepriest/rock_final/data/Na Kα1,2.csv')
-#phase_color = pd.read_csv(r'/home/jdepriest/rock_final/data/Phase Color 223.csv')
-si_data = pd.read_csv(r'/home/jdepriest/rock_final/data/Si Kα1.csv')
+def GrainBoundaryDetection(file, weight=10, verbose=0):
+    print("Starting Grain Detection...")
+
+    phase, band, ipf_x, ipf_y, ipf_z, ipf_min, ipf_max = extract_specimen_all(file, verbose=verbose)
+
+    ipf_x = generate_tv(ipf_x, "ipf_x", weight, verbose)
+    ipf_y = generate_tv(ipf_y, "ipf_y", weight, verbose)
+    ipf_z = generate_tv(ipf_z, "ipf_z", weight, verbose)
+    ipf_min = generate_tv(ipf_min, "ipf_min", weight, verbose)
+    ipf_max = generate_tv(ipf_max, "ipf_max", weight, verbose)
+
+    # TODO: Paris Functions here
+
+    # TODO: Phase and ipf comparison
+
+
+
 
 specimen = open(r'/home/jdepriest/rock_final/data/11CSR01-p Specimen 1 Area 2 Montaged Data 1 Montaged Map Data-Ph + AE + BC + EDS (Al+Ca+Na+Fe+Si+K).csv')
 
-#extract_specimen(specimen)
-#get_phase_color(specimen)
-#get_element_images(specimen)
-#subset_of_euler(specimen)
-
-#specimen = np.array(specimen)
-
-#print(specimen.shape, specimen.min(), specimen.max())
-
-#f = open('/home/jdepriest/rock_final/data/Phase Color 223.csv')
-#phase_color = get_phase_color(f)
-
-#f = open('/home/jdepriest/rock_final/data/Band Contrast 223 Panda.csv')
-#band_con = get_band_con(f)
-
-#print(phase_color.shape, phase_color.min(), phase_color.max())
-#generateImages([[phase_color]], ["phase_color"])
-
-
-ipf_image = np.zeros((ipf_x_color.shape[0], ipf_x_color.shape[1]-1, 3))
-
-#print(ipf_image.shape)
-
-ipf_x_color = np.array(ipf_x_color)
-ipf_y_color = np.array(ipf_y_color)
-ipf_z_color = np.array(ipf_z_color)
-
-print(ipf_x_color.min(), ipf_x_color.max())
-
-ipf_x_color = np.absolute(ipf_x_color)
-ipf_y_color = np.absolute(ipf_y_color)
-ipf_z_color = np.absolute(ipf_z_color)
-
-ipf_x_color = normalize(ipf_x_color)
-ipf_y_color = normalize(ipf_y_color)
-ipf_z_color = normalize(ipf_z_color)
-
-ipf_image[:,:,0] = ipf_x_color
-ipf_image[:,:,1] = ipf_y_color
-ipf_image[:,:,2] = ipf_z_color
-
-#ipf_image = np.array(ipf_image)
-#print(ipf_image.shape)
-
-ipf_image = np.absolute(ipf_image)
-#ipf_image = normalize(ipf_image)
-
-image = im.fromarray(ipf_image, "RGB")
-#image = image.convert('RGB')
-image.save("images/ipf_image_norm.png")
-
-
-
-#ipf_x_color = ipf_x_color[:,:-1]
-
-#print(ipf_image.min(), ipf_image.max(), sep="\n")
-#print(ipf_x_color)
-
-#all_data = [si_data, na_data, al_data, ca_data, fe_data, ipf_x_color, ipf_y_color, ipf_z_color, k_data]
-#all_files = ["si", "na", "al", "ca", "fe", "ipf_x", "ipf_y", "ipf_z", "k"]
-
-#generateImages(all_data, all_files)
-
-
-#generateImages([al_data], ["al_image_norm"])
-
-#generatePlots(all_data, all_files)
+GrainBoundaryDetection(specimen, weight=10, verbose=0)  # Edit this function. Weight changes TV filter weight, verbose saves images of each step in folders
