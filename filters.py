@@ -1,56 +1,47 @@
 import skimage
-from skimage.feature import canny
 from skimage.color import label2rgb
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage as ndi
 
-def clean_image(file: str, save=False) -> np.ndarray:
+def clean_image(arr) -> np.ndarray:
     """clean image through using the median to binary close and fill holes."""
-    image_stack = skimage.io.imread(file, as_gray=True)
-    footprint = skimage.morphology.disk(2)
-    filtered = skimage.filters.median(image_stack, footprint=footprint)
-    masked = filtered > skimage.filters.threshold_otsu(filtered)
-    closed = skimage.morphology.binary_closing(masked, footprint=footprint)
-    image_fill = ndi.binary_fill_holes(closed, footprint)
-    if save:
-        skimage.io.imsave(file[:-4]+"_filled_image_3.png", image_fill)
+    footprint = skimage.morphology.disk(5)
+    #filtered = skimage.filters.median(image_stack, footprint=footprint)
+    masked = arr > skimage.filters.threshold_otsu(arr)
+    influence_region = np.ones((5,5))
+    step1 = skimage.morphology.binary_dilation(masked, footprint=influence_region)
+    step2 = skimage.morphology.binary_erosion(step1, footprint=influence_region)
+    step3 = skimage.morphology.binary_erosion(step2, footprint=influence_region)
+    step4 = skimage.morphology.binary_dilation(step3, footprint=influence_region)
+    image_fill = ndi.binary_fill_holes(step4, skimage.morphology.disk(5))
+    #closed = skimage.morphology.binary_closing(masked, footprint=footprint)
+    #image_fill = ndi.binary_fill_holes(closed, footprint)
     return image_fill
 
-def opening_process(img: np.ndarray, footprint_size=2) -> np.ndarray:
-    """Remove noise in image through erosion process->dilation process"""
-    # erode the img using a square structuring element
-    footprint = skimage.morphology.square(footprint_size)
-    eroded_img = skimage.morphology.binary_erosion(img, footprint=footprint)
-    dilated_img = skimage.morphology.binary_dilation(eroded_img, footprint=footprint)
-    return dilated_img
-def closing_process(img: np.ndarray, footprint_size=2) -> np.ndarray:
-    """Close holes in image through dilation->erosion"""
-    footprint = skimage.morphology.square(footprint_size)
-    dilated_img = skimage.morphology.binary_dilation(img, footprint=footprint)
-    eroded_img = skimage.morphology.binary_erosion(dilated_img, footprint=footprint)
-    return eroded_img
-
-
-
-def contour_image(file: str, save_path=None):
-    # get og image
-    img = skimage.io.imread(file)
+def contour_image(arr, save_path=None, overlay_img=False):
     # an (x, y, z) image where z is either 0 or 255 values for the binary image
-    cleaned_img = clean_image(file)
+    cleaned_img = clean_image(arr)
     cleaned_img = ndi.binary_fill_holes(cleaned_img)
     labeled_grains, _ = ndi.label(cleaned_img)
-    img_label_overlay = label2rgb(labeled_grains, image=img, bg_label=0)
-    
-    fig, axes = plt.subplots(1,2, figsize=(8,3), sharey=True)
-    axes[0].imshow(img)
-    axes[0].contour(cleaned_img, [0.5], linewidths=0.5, colors='r')
-    axes[1].imshow(img_label_overlay)
-
-    for a in axes:
-        a.axis('off')
+    img_label_overlay = label2rgb(labeled_grains, image=arr, bg_label=0)
+    if overlay_img:
+        fig, axes = plt.subplots(1,2, figsize=(10,10), sharey=True)
+        axes[0].imshow(arr, cmap='gray')
+        axes[0].contour(cleaned_img, [0.5], linewidths=0.3, colors='r')
+        axes[1].imshow(img_label_overlay)
+        for a in axes:
+            a.axis('off')
+    else:
+        plt.figure()
+        plt.imshow(arr, cmap='gray')
+        plt.contour(cleaned_img, [0.5], linewidths=0.3, colors='r')
     plt.tight_layout()
-    plt.savefig('images/overlay.png')
+    if save_path is None:
+        plt.savefig('images/contour.png', dpi=300)
+    else:
+        plt.savefig(save_path, dpi=300)
 
+arr = skimage.io.imread("paris_images/tv_filtered/ipf_min_cham_10.png", as_gray=True)
+contour_image(arr, "paris_images/results/plot_ipf_min_cham_10.png", overlay_img=True)
 
-contour_image('images/phase_color_image.png')
