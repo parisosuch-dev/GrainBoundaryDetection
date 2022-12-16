@@ -253,8 +253,7 @@ def extract_specimen_all(file, verbose=0):
     ipf_y = normalize(ipf_y)
     ipf_z = normalize(ipf_z)
 
-    ipf_y = ipf_y - 256
-    ipf_y = np.absolute(ipf_y)
+    ipf_y = 255 - ipf_y
 
     ipf_min = all_ipf_min(ipf_x, ipf_y, ipf_z)
     ipf_max = all_ipf_max(ipf_x, ipf_y, ipf_z)
