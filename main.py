@@ -1,4 +1,4 @@
-from image_generation import extract_specimen_all, normalize
+from image_generation import extract_specimen_all
 from tv_filter import generate_tv
 from filters import contour_image
 from PIL import Image as im
@@ -59,13 +59,12 @@ def GrainBoundaryDetection(file, weight=10, verbose=0):
     contour_image(ipf_z, "images/contour_ipf_z.png", overlay_img=True)
     contour_image(ipf_min, "images/contour_ipf_min.png", overlay_img=True)
     contour_image(ipf_max, "images/contour_ipf_max.png", overlay_img=True)
-    #contour_image(band, "images/contour_band.png", overlay_img=True)
     contour_image(phase, "images/contour_phase.png", overlay_img=True)
 
 
 
 
 
-specimen = open(r'/home/jdepriest/rock_final/data/11CSR01-p Specimen 1 Area 2 Montaged Data 1 Montaged Map Data-Ph + AE + BC + EDS (Al+Ca+Na+Fe+Si+K).csv')
+specimen = open(r'data/11CSR01-p Specimen 1 Area 2 Montaged Data 1 Montaged Map Data-Ph + AE + BC + EDS (Al+Ca+Na+Fe+Si+K).csv')
 
 GrainBoundaryDetection(specimen, weight=10, verbose=1)  # Edit this function. Weight changes TV filter weight, verbose saves images of each step in folders

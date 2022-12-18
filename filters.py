@@ -7,7 +7,6 @@ import scipy.ndimage as ndi
 def clean_image(arr) -> np.ndarray:
     """clean image through using the median to binary close and fill holes."""
     footprint = skimage.morphology.disk(5)
-    #filtered = skimage.filters.median(image_stack, footprint=footprint)
     masked = arr > skimage.filters.threshold_otsu(arr)
     influence_region = np.ones((5,5))
     step1 = skimage.morphology.binary_dilation(masked, footprint=influence_region)
@@ -15,8 +14,6 @@ def clean_image(arr) -> np.ndarray:
     step3 = skimage.morphology.binary_erosion(step2, footprint=influence_region)
     step4 = skimage.morphology.binary_dilation(step3, footprint=influence_region)
     image_fill = ndi.binary_fill_holes(step4, skimage.morphology.disk(5))
-    #closed = skimage.morphology.binary_closing(masked, footprint=footprint)
-    #image_fill = ndi.binary_fill_holes(closed, footprint)
     return image_fill
 
 def contour_image(arr, save_path=None, overlay_img=False):
@@ -41,4 +38,3 @@ def contour_image(arr, save_path=None, overlay_img=False):
         plt.savefig('images/contour.png', dpi=300)
     else:
         plt.savefig(save_path, dpi=300)
-
